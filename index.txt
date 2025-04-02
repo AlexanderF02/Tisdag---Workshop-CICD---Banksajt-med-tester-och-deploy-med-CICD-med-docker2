@@ -1,0 +1,79 @@
+import express from 'express';
+import bodyParser from 'body-parser';
+import cors from 'cors';
+import helmet from 'helmet';
+import mysql from 'mysql2/promise';
+import bcrypt from 'bcrypt';
+
+const app = express();
+const port = 3003;
+
+// Middleware
+app.use(cors());
+app.use(bodyParser.json());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:'],
+      imgSrc: ["'self'", 'data:'],
+      connectSrc: ["'self'", 'http://localhost:3003'],
+    },
+  },
+}));
+
+// Connect to DB
+const pool = mysql.createPool({
+  host: "host.docker.internal", // Use the Docker DNS name to connect to the host MySQL server
+  user: "root",
+  password: "Snobben21", // Add your MySQL root password here
+  database: "bankdb",
+  port: 3308, // Use port 3308 for the local MySQL server
+});
+
+// Helper function to make code look nicer
+async function query(sql, params) {
+  const [results] = await pool.execute(sql, params);
+  return results;
+}
+
+let users = [];
+let accounts = [];
+let sessions = [];
+
+function generateOTP() {
+  const otp = Math.floor(100000 + Math.random() * 900000);
+  return otp.toString();
+}
+
+// Example route
+app.get('/api/endpoint', (req, res) => {
+  res.send('Hello from the backend!');
+});
+
+// User registration endpoint
+app.post('/users', async (req, res) => {
+  const { username, password } = req.body;
+  const saltRounds = 10;
+  const hashedPassword = await bcrypt.hash(password, saltRounds);
+  console.log("hashedPassword", hashedPassword);
+
+  try {
+    const result = await query(
+      "INSERT INTO users (username, password) VALUES (?, ?)",
+      [username, hashedPassword]
+    );
+    res.status(201).json({ message: "User created" });
+  } catch (error) {
+    console.error("Error creating user", error);
+    res.status(500).json({ message: "Error creating user" });
+  }
+});
+
+// Other endpoints...
+
+app.listen(port, () => {
+  console.log(`Backend server is running on http://localhost:${port}`);
+});
