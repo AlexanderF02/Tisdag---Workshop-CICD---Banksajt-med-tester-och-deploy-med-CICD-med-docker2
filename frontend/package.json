@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "transfer": "wsl rsync -avz -e \"ssh -i /home/alexander/alexkey.pem\" --exclude=node_modules --exclude=.next ./ ../ ubuntu@ec2-51-20-85-218.eu-north-1.compute.amazonaws.com:/home/ubuntu/bank"
+    "transfer": "wsl rsync -avz -e \"ssh -i /home/alexander/alexkey.pem\" --exclude=node_modules --exclude=.next ./ ../ ubuntu@ec2-51-20-85-218.eu-north-1.compute.amazonaws.com:/home/ubuntu/bank",
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "dependencies": {
     "autoprefixer": "^10.4.21",
